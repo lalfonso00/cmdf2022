@@ -1,16 +1,3 @@
-# import http.client
-
-# conn = http.client.HTTPSConnection("api.sparelabs.com")
-
-# payload = "{\n  \"url\": \"string\",\n  \"types\": [\n    \"requestStatus\"\n  ],\n  \"headers\": [\n    {\n      \"key\": \"string\",\n      \"value\": \"string\"\n    }\n  ]\n}"
-
-# headers = { 'Content-Type': "application/json", 'Authorization':"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw" }
-
-# conn.request("POST", "/v1/webhooks", payload, headers)
-
-# res = conn.getresponse()
-# data = res.read()
-# import http.client
 
 # https://sparelabs-photos.nyc3.digitaloceanspaces.com/Y2VtGMN2thNhj2OkE7zhYuTmLvVAFpFN.jpg
 import http.client
@@ -18,31 +5,25 @@ import urllib.parse
 import json
 import datetime
 import time
+import os
 from geopy.geocoders import Nominatim
 
 
 def addressToLatitudeLongitude(address):
-    # Structured Nominatim query may be req for address: https://nominatim.org/release-docs/develop/api/Search
-    # locator = geopy.Nominatim()
-    # location = locator.geocode("Champ de Mars, Paris, France")
-
-    # address = "90, Park Avenue, New York City, New York, 10016"
-    # address = {'street':"4221 Dunbar St"}
-    # address = "4221 Dunbar St, Vancouver, Canada"
 
     geolocator = Nominatim(user_agent="delivery_B")
     location = geolocator.geocode(address, timeout=10, exactly_one=True)
     return location.latitude, location.longitude
 
 
-def getRiderID(email):
+def getRiderID(email, API_KEY):
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
-    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
+    headers = {'Content-Type': "application/json",
+               'Authorization': "Bearer " + API_KEY}
     params = {'email': email}
     conn.request("GET", "/v1/riders?" +
                  urllib.parse.urlencode(params), headers=headers)
-    # conn.request("GET", "/v1/riders", headers=headers)
 
     res = conn.getresponse()
     data = res.read()
@@ -50,20 +31,26 @@ def getRiderID(email):
     rider = data.decode("utf-8")
 
     r = json.loads(rider)
+    # print(r["data"][0]["id"])
 
     return r["data"][0]["id"]
 
 
-def createRider():
-    # fname = input()
-    # lname = input()
-    # phoneNum = input()
-    # email = input()
+def createRider(API_KEY):
+    fname = input('enter your first name')
+    lname = input('enter your last name')
+    phoneNum = input('enter your phone number')
+    email = input('enter your email')
+    conn = http.client.HTTPSConnection("api.sparelabs.com")
+
+    # payloadObj = {'firstName': fname, 'lastName': lname, 'photoUrl': null, 'phoneNumber': phoneNum, 'email': email, 'metadata' {}, 'defaultRiders':[{'type': "adult",'count': 1 }], 'defaultAccessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": 3\n    }\n  ],\n  \"defaultNotes\": \"string\"\n}" }
 
     # payload = {'firstName':fname , 'lastName': lname, 'photoUrl': null, 'email': email, 'metadata': {}, 'defaultRiders': }
-    payload = "{\n  \"firstName\": \"Lo\",\n  \"lastName\": \"Al\",\n  \"photoUrl\": null,\n  \"phoneNumber\": \"6045559555\",\n  \"email\": \"ljl@gmail.com\",\n  \"metadata\": {},\n  \"defaultRiders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ],\n  \"defaultAccessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": 3\n    }\n  ],\n  \"defaultNotes\": \"string\"\n}"
+    payload = "{\n  \"firstName\": \"" + fname + "\",\n  \"lastName\": \"" + lname + ",\n  \"photoUrl\": null,\n  \"phoneNumber\": \"" + phoneNum + "\",\n  \"email\": \"" + email + \
+        "\",\n  \"metadata\": {},\n  \"defaultRiders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ],\n  \"defaultAccessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": 3\n    }\n  ],\n  \"defaultNotes\": \"string\"\n}"
     # payload = "{\n  \"firstName\": \"string\",\n  \"lastName\": \"string\",\n  \"photoUrl\": \"string\",\n  \"phoneNumber\": \"string\",\n  \"email\": \"string\",\n  \"metadata\": {},\n  \"defaultRiders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ],\n  \"defaultAccessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": \"\"\n    }\n  ],\n  \"defaultNotes\": \"string\"\n}"
-    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
+    headers = {'Content-Type': "application/json",
+               'Authorization': "Bearer " + API_KEY}
 
     conn.request("POST", "/v1/riders", payload, headers)
 
@@ -78,7 +65,7 @@ def createRider():
 # def getRider():
 
 
-def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropoffLongitude):
+def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
     # email = input()
     # riderid = getRiderID(email)
 
@@ -95,7 +82,8 @@ def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropof
     print(payload)
     # payload = "{\n  \"requestedPickupAddress\": \"string " + " \",\n  \"requestedPickupLocation\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      -180,\n      -180\n    ]\n  },\n  \"requestedDropoffAddress\": \"string\",\n  \"requestedDropoffLocation\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      -180,\n      -180\n    ]\n  },\n  \"estimateId\": \"de5c069b-4ec4-4b77-b171-2dd0db6cdf52\",\n  \"riderId\": \"f6b01ea6-8842-414c-87cc-ee62cc3b997a\",\n  \"numRiders\": 1,\n  \"metadata\": {},\n  \"notes\": \"string\",\n  \"accessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": \"\"\n    }\n  ],\n  \"paymentMethodId\": \"b6df8625-cd25-4123-b345-638aa7b5d011\",\n  \"chargeId\": \"aec0aceb-a4db-49fb-b366-75e90229c640\",\n  \"riders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ]\n}"
 
-    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
+    headers = {'Content-Type': "application/json",
+               'Authorization': "Bearer " + API_KEY}
 
     conn.request("POST", "/v1/requests", payload, headers)
 
@@ -105,14 +93,15 @@ def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropof
     print(data.decode("utf-8"))
 
 
-def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude):
+def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
     # conn.request("GET", "/v1/estimates/request", headers=headers)
 
     # TODO support user-chosen time
     pickupTime = int(time.time()+300)
-    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
+    headers = {'Content-Type': "application/json",
+               'Authorization': "Bearer " + API_KEY}
 
     # TODO support user-chosen location
     params = {'requestedDropoffLatitude': requestedDropoffLatitude,
@@ -136,13 +125,14 @@ def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude):
     return est["id"]
 
 
-def getServices(requestedDropoffLatitude, requestedDropoffLongitude):
+def getServices(requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
 
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
     # conn.request("GET", "/v1/estimates/request", headers=headers)
 
-    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
+    headers = {'Content-Type': "application/json",
+               'Authorization': "Bearer " + API_KEY}
     # 49.252176,-123.051335
     params = {'requestedDropoffLatitude': requestedDropoffLatitude,
               'requestedDropoffLongitude': requestedDropoffLongitude,
@@ -165,21 +155,24 @@ def getServices(requestedDropoffLatitude, requestedDropoffLongitude):
 
 
 def main():
+    API_KEY = os.getenv('SPARE_LABS_KEY')
     address = input(
         'enter your house number and street name, city, country: ex "4221 Dunbar St, Vancouver, Canada"')
 
     requestedDropoffLatitude, requestedDropoffLongitude = addressToLatitudeLongitude(
         address)
-    print(requestedDropoffLatitude, requestedDropoffLongitude)
+    print(requestedDropoffLongitude, ",", requestedDropoffLatitude)
+
     email = input(
         'enter your rider email ex. adam.kobayashi.hrvswa1rng@bot.sparelabs.com')
-    riderId = getRiderID(email)
-    svcId = getServices(requestedDropoffLatitude, requestedDropoffLongitude)
+    riderId = getRiderID(email, API_KEY)
+    svcId = getServices(requestedDropoffLatitude,
+                        requestedDropoffLongitude, API_KEY)
     estimateId = getEstimate(
-        svcId, requestedDropoffLatitude, requestedDropoffLongitude)
-    # # print(riderId, estimateId, svcId)
+        svcId, requestedDropoffLatitude, requestedDropoffLongitude, API_KEY)
+    print(riderId, estimateId, svcId)
     createRequest(riderId, estimateId, requestedDropoffLatitude,
-                  requestedDropoffLongitude)
+                  requestedDropoffLongitude, API_KEY)
 
 
 main()
