@@ -139,14 +139,13 @@ def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude):
 def getDistance(userLocation, phamarcyLocation):
     return ((userLocation[0]**2 + phamarcyLocation[0]**2) - (userLocation[1]**2 + phamarcyLocation[1]**2))**0.5
 
-def getClosestDistance(userLocations, phamarcyLocations):
+def getClosestDistance(userLocation, phamarcyLocations):
     minDistance = math.inf
     distance
     for phamarcyLocation in phamarcyLocations:
-        distance = getDistance()
-        if()
-
-
+        distance = getDistance(userLocation, phamarcyLocation)
+        if(distance < minDistance)
+            minDistance = distance
 
 def getServices(requestedDropoffLatitude, requestedDropoffLongitude):
 
