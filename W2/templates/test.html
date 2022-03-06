@@ -42,202 +42,225 @@
 
 
     <script>
+        // https://www.w3resource.com/javascript/form/email-validation.php
+        function validateEmail(inputText) {
+            var mailformat = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
+            if (inputText.match(mailformat)) {
+                return (true)
+            }
+            alert("You have entered an invalid email address!")
+            return (false)
+        }
 
 
         async function goRegister() {
+            console.log("gor")
 
-            let unamef = document.getElementById("uname").value
+            let fnamef = document.getElementById("fname").value
+            let lnamef = document.getElementById("lname").value
             let emailf = document.getElementById("email").value
             let passwordf = document.getElementById("password").value
 
-            let formData = JSON.stringify({ email: emailf, password: passwordf, username: unamef })
+            let formData = JSON.stringify({ email: emailf, password: passwordf, firstname: fnamef, lastname: lnamef })
 
             console.log(formData)
 
             // JSON.stringify({ email: "something@gotham.ca", password: "abc123" })
 
-            const resp = await fetch('/register', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: formData
-            })
+            if (validateEmail(emailf)) {
+                const resp = await fetch('/register', {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: formData
+                })
 
-            if (!resp.ok) throw Error("There was a problem in the register request")
+                if (!resp.ok) throw Error("There was a problem in the register request")
 
-            if (resp.status === 409) {
-                document.getElementById("demo").innerHTML = "Invalid credentials";
-                throw ("Invalid credentials")
+                if (resp.status === 409) {
+                    document.getElementById("demo").innerHTML = "Invalid credentials";
+                    throw ("Invalid credentials")
+                }
+                else if (resp.status === 400) {
+                    document.getElementById("demo").innerHTML = "Invalid email or password format";
+                    throw ("Invalid email or password format")
+                }
+                const data = await resp.json()
+
+                // console.log(data)
+
+                // sessionStorage.setItem("jwt-token", data.access_token);
+
+
+                document.getElementById("displayAll").innerHTML = "user registered successfully"
             }
-            else if (resp.status === 400) {
-                document.getElementById("demo").innerHTML = "Invalid email or password format";
-                throw ("Invalid email or password format")
+            else {
+                document.getElementById("displayAll").innerHTML = "registration unsuccessful"
             }
-            const data = await resp.json()
-
-            // console.log(data)
-
-            // sessionStorage.setItem("jwt-token", data.access_token);
-
-
-            document.getElementById("demo").innerHTML = "user created successfully!";
-            //TODO Erase the boxes
-        }
-
-
-        async function goLogin() {
-
-            let emailf = document.getElementById("emailLogin").value
-            let passwordf = document.getElementById("passwordLogin").value
-
-            let formData = JSON.stringify({ email: emailf, password: passwordf })
-
-            console.log(formData)
-
-            // JSON.stringify({ email: "something@gotham.ca", password: "abc123" })
-
-            const resp = await fetch('/login', {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: formData
-            })
-
-            if (!resp.ok) throw Error("There was a problem in the register request")
-
-            if (resp.status === 401) {
-
-                throw ("Invalid credentials")
-            }
-            else if (resp.status === 400) {
-
-                throw ("Invalid email or password format")
-
-            }
-            const data = await resp.json()
-
-            // console.log(data)
-
-            sessionStorage.setItem("jwt-token", data.access_token);
-
-            token = sessionStorage.getItem("jwt-token")
-
-            // const p = await fetch('/chat', { 
-            // 	method: "GET",
-            //     headers: { "Content-Type": "application/json",
-            //     "Authorization": 'Bearer ' + token}
-            // })
-
-            document.getElementById("demo").innerHTML = "logged in!"
-
-            // const username = data.username
-
-            sessionStorage.setItem("username", data.username);
-            // console.log(username)
-
-            header = '<body><h2>Welcome to the Chatroom!</h2><p>Username: ' + sessionStorage.getItem("username")
-            join = '</p><button id="send_name" onclick="goJoin"> Join the Room</button><p></p>'
-
-
-            $("#header").empty();
-            $("#join").empty();
 
 
 
-            $('#header').append(header);
-            $('#join').append(join);
 
 
 
 
             //TODO Erase the boxes
         }
-        setInterval(function () {
-            //call $.ajax here
-        }, 5000);
-
-        async function goJoin() {
-            console.log("gojrunning")
-
-            logout = '</p><button id="logout"> Log Out</button><p></p>'
-            chat = '<h4>chat log:</h4>'
-            messageinput = '<hr><input type="text" id="to" placeholder="sending to ?"><input type="text" id="msg" placeholder="whats the message">'
-            send_private = '<button id="send_private"> Submit private message</button>'
-            broadcast = '<button id="broadcast"> Send to everyone in the room</button>'
-
-            $("#logout").empty();
-            $("#messageinput").empty();
-            $("#send_private").empty();
-            $("#results").empty();
-            $("#broadcast").empty();
-            $("#chat").empty();
-
-            $('#logout').append(logout);
-            $('#chat').append(chat);
-            $('#message_container').append(messageinput);
-            $('#send_private').append(send_private);
-            $('#broadcast').append(broadcast);
 
 
-        }
+        // async function goLogin() {
 
-        async function goLogout() {
+        //     let emailf = document.getElementById("emailLogin").value
+        //     let passwordf = document.getElementById("passwordLogin").value
 
+        //     let formData = JSON.stringify({ email: emailf, password: passwordf })
 
-        }
+        //     console.log(formData)
 
+        //     // JSON.stringify({ email: "something@gotham.ca", password: "abc123" })
 
+        //     const resp = await fetch('/login', {
+        //         method: "POST",
+        //         headers: { "Content-Type": "application/json" },
+        //         body: formData
+        //     })
 
-        $(document).ready(function () {
-            let loc = window.location.href
+        //     if (!resp.ok) throw Error("There was a problem in the register request")
 
-            let socket = io(loc);
+        //     if (resp.status === 401) {
 
-            socket.on('notification', function (value) {
-                $("#result").append(value)
-            });
+        //         throw ("Invalid credentials")
+        //     }
+        //     else if (resp.status === 400) {
 
-            socket.on('message', function (value) {
-                message = '<hr><p>' + value + '</p>'
-                $("#chat").append(message)
-            });
+        //         throw ("Invalid email or password format")
 
+        //     }
+        //     const data = await resp.json()
 
-            $("#join").on('click', () => {
-                console.log("username")
-                let name = sessionStorage.getItem("username"); // this gets the username entered by the user
-                socket.emit('username', name);    // sends the username to the server
-            })
+        //     // console.log(data)
 
-            $("#logout").on('click', () => {
-                $("#logout").empty();
-                $('#message_container').empty();
-                $("#messageinput").empty();
-                $("#send_private").empty();
-                $("#results").empty();
-                $("#broadcast").empty();
-                $("#chat").empty();
-                console.log("logout")
-                let name = sessionStorage.getItem("username"); // this gets the username entered by the user
-                socket.emit('logout', name);    // sends the username to the server
-            })
+        //     sessionStorage.setItem("jwt-token", data.access_token);
 
-            $("#send_private").on('click', () => {
-                console.log("sendP")
-                let to_name = $('#to').val(); // this gets the name (receiver)
-                let name = sessionStorage.getItem("username")
-                let msg = $('#msg').val();
-                socket.emit('private_msg', { "from": name, "to": to_name, "message": msg });    // sends the username to the server
-            })
+        //     token = sessionStorage.getItem("jwt-token")
 
-            $("#broadcast").on('click', () => {// this gets the name (receiver)
-                console.log("sendB")
-                let name = sessionStorage.getItem("username")
-                let msg = $('#msg').val();
-                socket.emit('broadcast', { "from": name, "message": msg });    // sends the username to the server
-            })
+        //     // const p = await fetch('/chat', {
+        //     // 	method: "GET",
+        //     //     headers: { "Content-Type": "application/json",
+        //     //     "Authorization": 'Bearer ' + token}
+        //     // })
+
+        //     document.getElementById("demo").innerHTML = "logged in!"
+
+        //     // const username = data.username
+
+        //     sessionStorage.setItem("username", data.username);
+        //     // console.log(username)
+
+        //     header = '<body><h2>Welcome to the Chatroom!</h2><p>Username: ' + sessionStorage.getItem("username")
+        //     join = '</p><button id="send_name" onclick="goJoin"> Join the Room</button><p></p>'
 
 
-        });
+        //     $("#header").empty();
+        //     $("#join").empty();
+
+
+
+        //     $('#header').append(header);
+        //     $('#join').append(join);
+
+
+
+
+        //     //TODO Erase the boxes
+        // }
+        // setInterval(function () {
+        //     //call $.ajax here
+        // }, 5000);
+
+        // async function goJoin() {
+        //     console.log("gojrunning")
+
+        //     logout = '</p><button id="logout"> Log Out</button><p></p>'
+        //     chat = '<h4>chat log:</h4>'
+        //     messageinput = '<hr><input type="text" id="to" placeholder="sending to ?"><input type="text" id="msg" placeholder="whats the message">'
+        //     send_private = '<button id="send_private"> Submit private message</button>'
+        //     broadcast = '<button id="broadcast"> Send to everyone in the room</button>'
+
+        //     $("#logout").empty();
+        //     $("#messageinput").empty();
+        //     $("#send_private").empty();
+        //     $("#results").empty();
+        //     $("#broadcast").empty();
+        //     $("#chat").empty();
+
+        //     $('#logout').append(logout);
+        //     $('#chat').append(chat);
+        //     $('#message_container').append(messageinput);
+        //     $('#send_private').append(send_private);
+        //     $('#broadcast').append(broadcast);
+
+
+        // }
+
+        // async function goLogout() {
+
+
+        // }
+
+
+
+        // $(document).ready(function () {
+        //     let loc = window.location.href
+
+        //     let socket = io(loc);
+
+        //     socket.on('notification', function (value) {
+        //         $("#result").append(value)
+        //     });
+
+        //     socket.on('message', function (value) {
+        //         message = '<hr><p>' + value + '</p>'
+        //         $("#chat").append(message)
+        //     });
+
+
+        //     $("#join").on('click', () => {
+        //         console.log("username")
+        //         let name = sessionStorage.getItem("username"); // this gets the username entered by the user
+        //         socket.emit('username', name);    // sends the username to the server
+        //     })
+
+        //     $("#logout").on('click', () => {
+        //         $("#logout").empty();
+        //         $('#message_container').empty();
+        //         $("#messageinput").empty();
+        //         $("#send_private").empty();
+        //         $("#results").empty();
+        //         $("#broadcast").empty();
+        //         $("#chat").empty();
+        //         console.log("logout")
+        //         let name = sessionStorage.getItem("username"); // this gets the username entered by the user
+        //         socket.emit('logout', name);    // sends the username to the server
+        //     })
+
+        //     $("#send_private").on('click', () => {
+        //         console.log("sendP")
+        //         let to_name = $('#to').val(); // this gets the name (receiver)
+        //         let name = sessionStorage.getItem("username")
+        //         let msg = $('#msg').val();
+        //         socket.emit('private_msg', { "from": name, "to": to_name, "message": msg });    // sends the username to the server
+        //     })
+
+        //     $("#broadcast").on('click', () => {// this gets the name (receiver)
+        //         console.log("sendB")
+        //         let name = sessionStorage.getItem("username")
+        //         let msg = $('#msg').val();
+        //         socket.emit('broadcast', { "from": name, "message": msg });    // sends the username to the server
+        //     })
+
+
+        // });
 
 
 
@@ -252,8 +275,10 @@
         </div>
         <div id="register">
             <h2>New here? Register?</h2>
-            <label for="uname">Enter your username:</label><br>
-            <input type="text" id="uname" name="lname"><br><br>
+            <label for="fname">Enter your first name:</label><br>
+            <input type="text" id="fname" name="fname"><br><br>
+            <label for="lname">Enter your lastname:</label><br>
+            <input type="text" id="lname" name="lname"><br><br>
             <label for="email">Enter your email:</label><br>
             <input type="text" id="email" name="email"><br><br>
             <label for="password">Enter your password:</label><br>
