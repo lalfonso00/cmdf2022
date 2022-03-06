@@ -63,20 +63,23 @@ def createRider():
 # def getRider():
 
 
-def sendRequest(rider, pharmLocation, userLocation):
+def createRequest(riderId, estimateId):
     # email = input()
     # riderid = getRiderID(email)
 
-    riderid = getRiderID("adam.kobayashi.hrvswa1rng@bot.sparelabs.com")
+    # riderid = getRiderID("adam.kobayashi.hrvswa1rng@bot.sparelabs.com")
 
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
-    payload = "{\n  \"requestedPickupAddress\": \"string\",\n  \"requestedPickupLocation\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      -180,\n      -180\n    ]\n  },\n  \"requestedDropoffAddress\": \"string\",\n  \"requestedDropoffLocation\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      -180,\n      -180\n    ]\n  },\n  \"estimateId\": \"de5c069b-4ec4-4b77-b171-2dd0db6cdf52\",\n  \"riderId\": \"f6b01ea6-8842-414c-87cc-ee62cc3b997a\",\n  \"numRiders\": 1,\n  \"metadata\": {},\n  \"notes\": \"string\",\n  \"accessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": \"\"\n    }\n  ],\n  \"paymentMethodId\": \"b6df8625-cd25-4123-b345-638aa7b5d011\",\n  \"chargeId\": \"aec0aceb-a4db-49fb-b366-75e90229c640\",\n  \"riders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ]\n}"
+    payloadObj = {'requestedPickupAddress': "string", 'requestedPickupLocation': {'type': "Point", 'coordinates': [
+        -123.051335, 49.252176]}, 'requestedDropoffAddress': "string", 'requestedDropoffLocation': {'type': "Point", 'coordinates': [-123.034501, 49.254417]}, 'estimateId': estimateId, 'riderId': riderId}
 
-    headers = {
-        'Content-Type': "application/json",
-        'Authorization': ""
-    }
+    payload = json.dumps(payloadObj)
+    print("-------------------------------")
+    print(payload)
+    # payload = "{\n  \"requestedPickupAddress\": \"string " + " \",\n  \"requestedPickupLocation\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      -180,\n      -180\n    ]\n  },\n  \"requestedDropoffAddress\": \"string\",\n  \"requestedDropoffLocation\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      -180,\n      -180\n    ]\n  },\n  \"estimateId\": \"de5c069b-4ec4-4b77-b171-2dd0db6cdf52\",\n  \"riderId\": \"f6b01ea6-8842-414c-87cc-ee62cc3b997a\",\n  \"numRiders\": 1,\n  \"metadata\": {},\n  \"notes\": \"string\",\n  \"accessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": \"\"\n    }\n  ],\n  \"paymentMethodId\": \"b6df8625-cd25-4123-b345-638aa7b5d011\",\n  \"chargeId\": \"aec0aceb-a4db-49fb-b366-75e90229c640\",\n  \"riders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ]\n}"
+
+    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
 
     conn.request("POST", "/v1/requests", payload, headers)
 
@@ -90,9 +93,12 @@ def getEstimate(svcId):
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
     # conn.request("GET", "/v1/estimates/request", headers=headers)
+
+    # TODO support user-chosen time
     pickupTime = int(time.time()+300)
     headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
 
+    # TODO support user-chosen location
     params = {'requestedDropoffLatitude': "49.254417",
               'requestedDropoffLongitude': "-123.034501",
               'requestedPickupLatitude': "49.252176",
@@ -108,6 +114,8 @@ def getEstimate(svcId):
     estimate = data.decode("utf-8")
 
     est = json.loads(estimate)
+    print("-------------------------------")
+    print(est)
 
     return est["id"]
 
@@ -134,13 +142,18 @@ def getServices():
     service = data.decode("utf-8")
 
     svc = json.loads(service)
+    print(" services \n")
+    print(svc)
 
     return svc["services"][0]["serviceId"]
 
 
 def main():
+    riderId = getRiderID("adam.kobayashi.hrvswa1rng@bot.sparelabs.com")
     svcId = getServices()
-    getEstimate(svcId)
+    estimateId = getEstimate(svcId)
+    # print(riderId, estimateId, svcId)
+    createRequest(riderId, estimateId)
 
 
 main()
