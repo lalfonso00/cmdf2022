@@ -10,12 +10,34 @@
 
 # res = conn.getresponse()
 # data = res.read()
+# import http.client
 
-
-
-
+# https://sparelabs-photos.nyc3.digitaloceanspaces.com/Y2VtGMN2thNhj2OkE7zhYuTmLvVAFpFN.jpg
 import http.client
-conn = http.client.HTTPSConnection("api.sparelabs.com")
+import urllib.parse
+import json
+import datetime
+import time
+
+
+def getRiderID(email):
+    conn = http.client.HTTPSConnection("api.sparelabs.com")
+
+    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
+    params = {'email': email}
+    conn.request("GET", "/v1/riders?" +
+                 urllib.parse.urlencode(params), headers=headers)
+    # conn.request("GET", "/v1/riders", headers=headers)
+
+    res = conn.getresponse()
+    data = res.read()
+
+    rider = data.decode("utf-8")
+
+    r = json.loads(rider)
+
+    return r["data"][0]["id"]
+
 
 def createRider():
     # fname = input()
@@ -26,7 +48,7 @@ def createRider():
     # payload = {'firstName':fname , 'lastName': lname, 'photoUrl': null, 'email': email, 'metadata': {}, 'defaultRiders': }
     payload = "{\n  \"firstName\": \"Lo\",\n  \"lastName\": \"Al\",\n  \"photoUrl\": null,\n  \"phoneNumber\": \"6045559555\",\n  \"email\": \"ljl@gmail.com\",\n  \"metadata\": {},\n  \"defaultRiders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ],\n  \"defaultAccessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": 3\n    }\n  ],\n  \"defaultNotes\": \"string\"\n}"
     # payload = "{\n  \"firstName\": \"string\",\n  \"lastName\": \"string\",\n  \"photoUrl\": \"string\",\n  \"phoneNumber\": \"string\",\n  \"email\": \"string\",\n  \"metadata\": {},\n  \"defaultRiders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ],\n  \"defaultAccessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": \"\"\n    }\n  ],\n  \"defaultNotes\": \"string\"\n}"
-    headers = { 'Content-Type': "application/json", 'Authorization':"Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw" }
+    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
 
     conn.request("POST", "/v1/riders", payload, headers)
 
@@ -34,14 +56,18 @@ def createRider():
     data = res.read()
 
     print(data.decode("utf-8"))
-    #TODO return boolean 
+    # TODO return boolean
     return data.decode("utf-8")
 
-def getRider():
+
+# def getRider():
 
 
 def sendRequest(rider, pharmLocation, userLocation):
-    
+    # email = input()
+    # riderid = getRiderID(email)
+
+    riderid = getRiderID("adam.kobayashi.hrvswa1rng@bot.sparelabs.com")
 
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
@@ -50,7 +76,7 @@ def sendRequest(rider, pharmLocation, userLocation):
     headers = {
         'Content-Type': "application/json",
         'Authorization': ""
-        }
+    }
 
     conn.request("POST", "/v1/requests", payload, headers)
 
@@ -58,6 +84,63 @@ def sendRequest(rider, pharmLocation, userLocation):
     data = res.read()
 
     print(data.decode("utf-8"))
-    
 
-      
+
+def getEstimate(svcId):
+    conn = http.client.HTTPSConnection("api.sparelabs.com")
+
+    # conn.request("GET", "/v1/estimates/request", headers=headers)
+    pickupTime = int(time.time()+300)
+    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
+
+    params = {'requestedDropoffLatitude': "49.254417",
+              'requestedDropoffLongitude': "-123.034501",
+              'requestedPickupLatitude': "49.252176",
+              'requestedPickupLongitude': "-123.051335",
+              'serviceId': svcId,
+              'requestedPickupTs': pickupTime}
+    conn.request("GET", "/v1/estimates/request?" +
+                 urllib.parse.urlencode(params), headers=headers)
+
+    res = conn.getresponse()
+    data = res.read()
+
+    estimate = data.decode("utf-8")
+
+    est = json.loads(estimate)
+
+    return est["id"]
+
+
+def getServices():
+
+    conn = http.client.HTTPSConnection("api.sparelabs.com")
+
+    # conn.request("GET", "/v1/estimates/request", headers=headers)
+
+    headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
+    # 49.252176,-123.051335
+    params = {'requestedDropoffLatitude': "49.254417",
+              'requestedDropoffLongitude': "-123.034501",
+              'requestedPickupLatitude': "49.252176",
+              'requestedPickupLongitude': "-123.051335"}
+    conn.request("GET", "/v1/estimates/services?" +
+                 urllib.parse.urlencode(params), headers=headers)
+
+    res = conn.getresponse()
+    data = res.read()
+
+    # print(data.decode("utf-8"))
+    service = data.decode("utf-8")
+
+    svc = json.loads(service)
+
+    return svc["services"][0]["serviceId"]
+
+
+def main():
+    svcId = getServices()
+    getEstimate(svcId)
+
+
+main()
