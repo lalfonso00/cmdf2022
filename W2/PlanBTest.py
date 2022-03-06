@@ -66,7 +66,7 @@ def createRider(API_KEY):
 # def getRider():
 
 
-def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
+def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropoffLongitude, requestedPickupLatitude, requestedPickupLongitude, API_KEY):
     # email = input()
     # riderid = getRiderID(email)
 
@@ -76,11 +76,11 @@ def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropof
     requestedDropoffLongitude
 
     payloadObj = {'requestedPickupAddress': "string", 'requestedPickupLocation': {'type': "Point", 'coordinates': [
-        -123.051335, 49.252176]}, 'requestedDropoffAddress': "string", 'requestedDropoffLocation': {'type': "Point", 'coordinates': [requestedDropoffLongitude, requestedDropoffLatitude]}, 'estimateId': estimateId, 'riderId': riderId}
+        requestedPickupLongitude, requestedPickupLatitude]}, 'requestedDropoffAddress': "string", 'requestedDropoffLocation': {'type': "Point", 'coordinates': [requestedDropoffLongitude, requestedDropoffLatitude]}, 'estimateId': estimateId, 'riderId': riderId}
 
     payload = json.dumps(payloadObj)
     print("-------------------------------")
-    print(payload)
+    # print(payload)
     # payload = "{\n  \"requestedPickupAddress\": \"string " + " \",\n  \"requestedPickupLocation\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      -180,\n      -180\n    ]\n  },\n  \"requestedDropoffAddress\": \"string\",\n  \"requestedDropoffLocation\": {\n    \"type\": \"Point\",\n    \"coordinates\": [\n      -180,\n      -180\n    ]\n  },\n  \"estimateId\": \"de5c069b-4ec4-4b77-b171-2dd0db6cdf52\",\n  \"riderId\": \"f6b01ea6-8842-414c-87cc-ee62cc3b997a\",\n  \"numRiders\": 1,\n  \"metadata\": {},\n  \"notes\": \"string\",\n  \"accessibilityFeatures\": [\n    {\n      \"type\": \"wheelchair\",\n      \"count\": \"\"\n    }\n  ],\n  \"paymentMethodId\": \"b6df8625-cd25-4123-b345-638aa7b5d011\",\n  \"chargeId\": \"aec0aceb-a4db-49fb-b366-75e90229c640\",\n  \"riders\": [\n    {\n      \"type\": \"adult\",\n      \"count\": 1\n    }\n  ]\n}"
 
     headers = {'Content-Type': "application/json",
@@ -91,10 +91,11 @@ def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropof
     res = conn.getresponse()
     data = res.read()
 
-    print(data.decode("utf-8"))
+    # print(data.decode("utf-8"))
+    print("your Plan C delivery has been created and a Driver is on the way!")
 
 
-def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
+def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude, requestedPickupLatitude, requestedPickupLongitude, API_KEY):
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
     # conn.request("GET", "/v1/estimates/request", headers=headers)
@@ -107,8 +108,8 @@ def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude, API_
     # TODO support user-chosen location
     params = {'requestedDropoffLatitude': requestedDropoffLatitude,
               'requestedDropoffLongitude': requestedDropoffLongitude,
-              'requestedPickupLatitude': "49.252176",
-              'requestedPickupLongitude': "-123.051335",
+              'requestedPickupLatitude': requestedPickupLatitude,
+              'requestedPickupLongitude': requestedPickupLongitude,
               'serviceId': svcId,
               'requestedPickupTs': pickupTime}
     conn.request("GET", "/v1/estimates/request?" +
@@ -121,7 +122,8 @@ def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude, API_
 
     est = json.loads(estimate)
     print("-------------------------------")
-    print(est)
+    # print(est)
+    print("estimate confirmed!")
 
     return est["id"]
 
@@ -132,14 +134,17 @@ def getDistance(userLocation, phamarcyLocation):
 
 def getClosestDistance(userLocation, phamarcyLocations):
     minDistance = math.inf
-    distance
     for phamarcyLocation in phamarcyLocations:
         distance = getDistance(userLocation, phamarcyLocation)
+        # print(distance)
         if(distance < minDistance):
             minDistance = distance
+            closestPhamarcyLocation = phamarcyLocation
+            # print(minDistance)
+    return closestPhamarcyLocation
 
 
-def getServices(requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
+def getServices(requestedDropoffLatitude, requestedDropoffLongitude, requestedPickupLatitude, requestedPickupLongitude, API_KEY):
 
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
@@ -150,8 +155,8 @@ def getServices(requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
     # 49.252176,-123.051335
     params = {'requestedDropoffLatitude': requestedDropoffLatitude,
               'requestedDropoffLongitude': requestedDropoffLongitude,
-              'requestedPickupLatitude': "49.252176",
-              'requestedPickupLongitude': "-123.051335"}
+              'requestedPickupLatitude': requestedPickupLatitude,
+              'requestedPickupLongitude': requestedPickupLongitude}
     conn.request("GET", "/v1/estimates/services?" +
                  urllib.parse.urlencode(params), headers=headers)
 
@@ -163,30 +168,48 @@ def getServices(requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
 
     svc = json.loads(service)
     print(" services \n")
-    print(svc)
+    # print(svc)
+    print("service confirmed!")
 
     return svc["services"][0]["serviceId"]
 
 
 def main():
+    pharmacies = [[-123.122167, 49.2834485],
+                  [-123.06887366948149, 49.2626459],
+                  [-123.1853879, 49.2321965],
+                  [-123.1178585, 49.2335447],
+                  [-123.0900995, 49.2501799],
+                  [-123.06887366948149, 49.2626459],
+                  [-123.057168, 49.2411628],
+                  [-123.001045, 49.2680839],
+                  [-123.139408, 49.2855264],
+                  [-123.1159099, 49.2635864]]
+
     API_KEY = os.getenv('SPARE_LABS_KEY')
     address = input(
         'enter your house number and street name, city, country: ex "4221 Dunbar St, Vancouver, Canada"')
 
     requestedDropoffLatitude, requestedDropoffLongitude = addressToLatitudeLongitude(
         address)
-    print(requestedDropoffLongitude, ",", requestedDropoffLatitude)
+    # print(requestedDropoffLongitude, ",", requestedDropoffLatitude)
+    userLocation = [requestedDropoffLongitude, requestedDropoffLatitude]
+    # print(userLocation)
+    pharmacyLocation = getClosestDistance(userLocation, pharmacies)
+    requestedPickupLongitude = pharmacyLocation[0]
+    requestedPickupLatitude = pharmacyLocation[1]
 
+    # createRider(API_KEY)
     email = input(
         'enter your rider email ex. adam.kobayashi.hrvswa1rng@bot.sparelabs.com')
     riderId = getRiderID(email, API_KEY)
     svcId = getServices(requestedDropoffLatitude,
-                        requestedDropoffLongitude, API_KEY)
+                        requestedDropoffLongitude, requestedPickupLatitude, requestedPickupLongitude, API_KEY)
     estimateId = getEstimate(
-        svcId, requestedDropoffLatitude, requestedDropoffLongitude, API_KEY)
+        svcId, requestedDropoffLatitude, requestedDropoffLongitude, requestedPickupLatitude, requestedPickupLongitude, API_KEY)
     print(riderId, estimateId, svcId)
     createRequest(riderId, estimateId, requestedDropoffLatitude,
-                  requestedDropoffLongitude, API_KEY)
+                  requestedDropoffLongitude, requestedPickupLatitude, requestedPickupLongitude, API_KEY)
 
 
 main()
