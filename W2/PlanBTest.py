@@ -171,7 +171,9 @@ def main():
     requestedDropoffLatitude, requestedDropoffLongitude = addressToLatitudeLongitude(
         address)
     print(requestedDropoffLatitude, requestedDropoffLongitude)
-    riderId = getRiderID("adam.kobayashi.hrvswa1rng@bot.sparelabs.com")
+    email = input(
+        'enter your rider email ex. adam.kobayashi.hrvswa1rng@bot.sparelabs.com')
+    riderId = getRiderID(email)
     svcId = getServices(requestedDropoffLatitude, requestedDropoffLongitude)
     estimateId = getEstimate(
         svcId, requestedDropoffLatitude, requestedDropoffLongitude)
