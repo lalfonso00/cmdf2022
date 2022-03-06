@@ -6,6 +6,7 @@ import json
 import datetime
 import time
 import os
+import math
 from geopy.geocoders import Nominatim
 
 
@@ -123,6 +124,19 @@ def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude, API_
     print(est)
 
     return est["id"]
+
+
+def getDistance(userLocation, phamarcyLocation):
+    return ((userLocation[0]**2 + phamarcyLocation[0]**2) - (userLocation[1]**2 + phamarcyLocation[1]**2))**0.5
+
+
+def getClosestDistance(userLocation, phamarcyLocations):
+    minDistance = math.inf
+    distance
+    for phamarcyLocation in phamarcyLocations:
+        distance = getDistance(userLocation, phamarcyLocation)
+        if(distance < minDistance):
+            minDistance = distance
 
 
 def getServices(requestedDropoffLatitude, requestedDropoffLongitude, API_KEY):
