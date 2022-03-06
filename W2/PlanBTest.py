@@ -18,6 +18,21 @@ import urllib.parse
 import json
 import datetime
 import time
+from geopy.geocoders import Nominatim
+
+
+def addressToLatitudeLongitude(address):
+    # Structured Nominatim query may be req for address: https://nominatim.org/release-docs/develop/api/Search
+    # locator = geopy.Nominatim()
+    # location = locator.geocode("Champ de Mars, Paris, France")
+
+    # address = "90, Park Avenue, New York City, New York, 10016"
+    # address = {'street':"4221 Dunbar St"}
+    # address = "4221 Dunbar St, Vancouver, Canada"
+
+    geolocator = Nominatim(user_agent="delivery_B")
+    location = geolocator.geocode(address, timeout=10, exactly_one=True)
+    return location.latitude, location.longitude
 
 
 def getRiderID(email):
@@ -63,16 +78,17 @@ def createRider():
 # def getRider():
 
 
-def createRequest(riderId, estimateId):
+def createRequest(riderId, estimateId, requestedDropoffLatitude, requestedDropoffLongitude):
     # email = input()
     # riderid = getRiderID(email)
 
     # riderid = getRiderID("adam.kobayashi.hrvswa1rng@bot.sparelabs.com")
 
     conn = http.client.HTTPSConnection("api.sparelabs.com")
+    requestedDropoffLongitude
 
     payloadObj = {'requestedPickupAddress': "string", 'requestedPickupLocation': {'type': "Point", 'coordinates': [
-        -123.051335, 49.252176]}, 'requestedDropoffAddress': "string", 'requestedDropoffLocation': {'type': "Point", 'coordinates': [-123.034501, 49.254417]}, 'estimateId': estimateId, 'riderId': riderId}
+        -123.051335, 49.252176]}, 'requestedDropoffAddress': "string", 'requestedDropoffLocation': {'type': "Point", 'coordinates': [requestedDropoffLongitude, requestedDropoffLatitude]}, 'estimateId': estimateId, 'riderId': riderId}
 
     payload = json.dumps(payloadObj)
     print("-------------------------------")
@@ -89,7 +105,7 @@ def createRequest(riderId, estimateId):
     print(data.decode("utf-8"))
 
 
-def getEstimate(svcId):
+def getEstimate(svcId, requestedDropoffLatitude, requestedDropoffLongitude):
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
     # conn.request("GET", "/v1/estimates/request", headers=headers)
@@ -99,8 +115,8 @@ def getEstimate(svcId):
     headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
 
     # TODO support user-chosen location
-    params = {'requestedDropoffLatitude': "49.254417",
-              'requestedDropoffLongitude': "-123.034501",
+    params = {'requestedDropoffLatitude': requestedDropoffLatitude,
+              'requestedDropoffLongitude': requestedDropoffLongitude,
               'requestedPickupLatitude': "49.252176",
               'requestedPickupLongitude': "-123.051335",
               'serviceId': svcId,
@@ -120,7 +136,7 @@ def getEstimate(svcId):
     return est["id"]
 
 
-def getServices():
+def getServices(requestedDropoffLatitude, requestedDropoffLongitude):
 
     conn = http.client.HTTPSConnection("api.sparelabs.com")
 
@@ -128,8 +144,8 @@ def getServices():
 
     headers = {'Content-Type': "application/json", 'Authorization': "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6IjdmMmRmMzBjLWFjMDktNDZhNS05MzI2LWJlZDMzMmY2NzNmMyIsInR5cGUiOiJhcGlLZXkiLCJzZWNyZXQiOiJPb3VucVZsWG1KWFgwMXVaIiwiZXhwaXJlcyI6bnVsbH0.y5DMOdv4YygFhjU7EECo92YrfNLNE_vuKvYExl0ddCiOqP5sYlFNB61ho25etES94SIy_S7wkyKqcAiq_Hxgdw"}
     # 49.252176,-123.051335
-    params = {'requestedDropoffLatitude': "49.254417",
-              'requestedDropoffLongitude': "-123.034501",
+    params = {'requestedDropoffLatitude': requestedDropoffLatitude,
+              'requestedDropoffLongitude': requestedDropoffLongitude,
               'requestedPickupLatitude': "49.252176",
               'requestedPickupLongitude': "-123.051335"}
     conn.request("GET", "/v1/estimates/services?" +
@@ -149,11 +165,19 @@ def getServices():
 
 
 def main():
+    address = input(
+        'enter your house number and street name, city, country: ex "4221 Dunbar St, Vancouver, Canada"')
+
+    requestedDropoffLatitude, requestedDropoffLongitude = addressToLatitudeLongitude(
+        address)
+    print(requestedDropoffLatitude, requestedDropoffLongitude)
     riderId = getRiderID("adam.kobayashi.hrvswa1rng@bot.sparelabs.com")
-    svcId = getServices()
-    estimateId = getEstimate(svcId)
-    # print(riderId, estimateId, svcId)
-    createRequest(riderId, estimateId)
+    svcId = getServices(requestedDropoffLatitude, requestedDropoffLongitude)
+    estimateId = getEstimate(
+        svcId, requestedDropoffLatitude, requestedDropoffLongitude)
+    # # print(riderId, estimateId, svcId)
+    createRequest(riderId, estimateId, requestedDropoffLatitude,
+                  requestedDropoffLongitude)
 
 
 main()
